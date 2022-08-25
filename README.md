@@ -96,4 +96,11 @@ Below you can see a description for the intended use of each folder and relevant
 Jupyter Notebooks
 ==============================
 
-Inside the "notebooks" folder there are annotated explorations of the data, all the way to implementing machine learning models. Once the prokect is going you can execute this notebooks on your computer!
+Inside the "notebooks" folder there are annotated explorations of the data, all the way to implementing machine learning models. Once the project is going you can execute this notebooks on your computer! By default, no folder inside the notebook sub-folder are stored, as some generated files are too heavy for this free github, as for the data folder.
+
+General Data Flow
+==============================
+
+The general data flow for classifiying spectra can be seen in the following image:
+
+![What is this](READMEimgs/fchart.png)
