@@ -103,4 +103,4 @@ General Data Flow
 
 The general data flow for classifiying spectra can be seen in the following image:
 
-<img src="READMEimgs/fchart.png" alt="Data Flow Chart" width="100"/>
+<img src="READMEimgs/fchart.png" alt="Data Flow Chart" width="300"/>
