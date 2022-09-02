@@ -49,7 +49,7 @@ def make_stratified_sets(df, train_set_size: float=0.6, validation_test_split: f
 
 # We want to load a matrix from the training data, given the data size this wil be acceptable.
 
-def data_processing_and_loading(sdss_data_path, block_df):
+def data_processing_and_loading(sdss_data_path, block_df, first_bin=48, last_bin=-400):
     """
     The following function takes a dataframe consisting of two columns: filename of .dat
     file and class ID, and returns a numpy array consisting of the spectrum data matrix, 
@@ -65,6 +65,8 @@ def data_processing_and_loading(sdss_data_path, block_df):
     :sdss_data_path: path to folders where each subfolder contains .dat files.
     :block_df: dataframe with two columns, filenames and class id.
     :stars_enconding: dictionary with one hot encoding. 
+    :first_bin: start of array to consider, must be positive.
+    :last_bin: Last bin from array to consider, must be negative.
 
     Returns
     -------
@@ -72,25 +74,30 @@ def data_processing_and_loading(sdss_data_path, block_df):
     and the filename of spectrums with nan data which will be removed from the datasets.
     """ 
     to_remove = list()
-    spectrum_matrix = np.empty((0,4200), float)
+    spectrum_matrix = np.empty((0,4648-abs(first_bin)-abs(last_bin)), float)
 
     for _, row in block_df.iterrows():
         file_path = os.path.join(sdss_data_path, row['filename'])
         sed = np.loadtxt(file_path, unpack = True)
-        wavelength = sed[0,48:-400]
+
+        # only for norm consistency, need to update.
         flux = sed[1,48:-400]
         norm_magnitud = statistics.mean(flux[2050:2100])
+
+        # Now extract flux and wavelenght portion of interest.
+        wavelength = sed[0,first_bin:last_bin]
+        flux = sed[1,first_bin:last_bin]
         if(np.isnan(flux).any() or np.isnan(wavelength).any() or norm_magnitud == 0):
             # print('Nan data found for file {}'.format(file_path))
             to_remove.append(row['filename'])
         else:
-            flux = np.divide(flux, statistics.mean(flux[2050:2100]))
+            flux = np.divide(flux, norm_magnitud)
             spectrum_matrix = np.append(spectrum_matrix, np.transpose(flux[:, None]), axis=0)
     for element in to_remove:
         block_df.drop(block_df.index[block_df['filename'] == element], inplace = True)
     return spectrum_matrix
 
-def basic_spectrum_pipeline(prefix, csv_relative_path):
+def basic_spectrum_pipeline(prefix, csv_relative_path, relative_save_folder='default', first_bin=48, last_bin=-400):
     """ 
     This function takes,
 
@@ -98,6 +105,7 @@ def basic_spectrum_pipeline(prefix, csv_relative_path):
     ----------
     :param prefix:
     :param csv_relative_path: Path of the matched csv file dataset w 
+    :relative_save_folder: relative to the project directory.
 
     Returns
     -------
@@ -124,14 +132,14 @@ def basic_spectrum_pipeline(prefix, csv_relative_path):
     sdss_data_path = os.path.join(project_dir, r'data\raw\sdss_dat_files')
     # print(test_set.shape)
     logger.info('Processing test set spectrum data')
-    test_spectrum_matrix = data_processing_and_loading(sdss_data_path, test_set)
+    test_spectrum_matrix = data_processing_and_loading(sdss_data_path, test_set, first_bin=first_bin, last_bin=last_bin)
     # print(test_set.shape)
     # print(train_set.shape)
     logger.info('Processing training set spectrum data')
-    train_spectrum_matrix = data_processing_and_loading(sdss_data_path, train_set)
+    train_spectrum_matrix = data_processing_and_loading(sdss_data_path, train_set, first_bin=first_bin, last_bin=last_bin)
     # print(train_set.shape)
     logger.info('Processing validation set spectrum data')
-    valid_spectrum_matrix = data_processing_and_loading(sdss_data_path, valid_set)
+    valid_spectrum_matrix = data_processing_and_loading(sdss_data_path, valid_set, first_bin=first_bin, last_bin=last_bin)
 
     # One hot encoding categorical data
 
@@ -141,8 +149,10 @@ def basic_spectrum_pipeline(prefix, csv_relative_path):
     valid_ohe_labels = ohe.fit_transform(valid_set[['classID']])
 
      # Saving spectrums to processes data
-
-    save_folder = os.path.join(project_dir, r'data\processed')
+    if relative_save_folder == 'default':
+        save_folder = os.path.join(project_dir, r'data\processed')
+    else:
+        save_folder = os.path.join(project_dir, relative_save_folder)
     np.save(os.path.join(save_folder, prefix+'_train_spectrum_matrix.npy'), train_spectrum_matrix)
     np.save(os.path.join(save_folder, prefix+'_test_spectrum_matrix.npy'), test_spectrum_matrix)
     np.save(os.path.join(save_folder, prefix+'_valid_spectrum_matrix.npy'), valid_spectrum_matrix)
@@ -199,7 +209,7 @@ def make_external_datasets():
 
     return ext_train_set, ext_test_set, ext_valid_set
 
-def ext_data_processing_and_loading(ext_data_path, block_df, base_wavelenght, ohe_dict, ext_data_dict):
+def ext_data_processing_and_loading(ext_data_path, block_df, base_wavelenght, ohe_dict, ext_data_dict, first_bin=48, last_bin=-400, full_filename=False):
     """
     The following function takes a dataframe consisting of two columns: filename of .dat
     file and class ID, and returns numpy arrays consisting of the spectrum data matrix.
@@ -219,16 +229,21 @@ def ext_data_processing_and_loading(ext_data_path, block_df, base_wavelenght, oh
     and the filename of spectrums with nan data which will be removed from the datasets.
     """ 
     to_remove = list()
-    spectrum_matrix = np.empty((0,4200), float)
+    spectrum_matrix = np.empty((0,4648-abs(first_bin)-abs(last_bin)), float)
+
+
     label_ohe_matrix = np.empty((0,12), float)
 
     for _, row in block_df.iterrows(): 
-        relative_path = 'boss' + row['classID'] + '\\' + 'spec-' + zero_pad_str(5, str(row['PLATEID'])) + '-' + str(row['MJDID']) + '-' + zero_pad_str(4, str(row['FIBERID'])) + '.fits'
-        fits_path = os.path.join(ext_data_path, relative_path)
+        if full_filename:
+            fits_path = row['filename']
+        else:
+            relative_path = 'boss' + row['classID'] + '\\' + 'spec-' + zero_pad_str(5, str(row['PLATEID'])) + '-' + str(row['MJDID']) + '-' + zero_pad_str(4, str(row['FIBERID'])) + '.fits'
+            fits_path = os.path.join(ext_data_path, relative_path)
         w,f = extraction(fits_path)
         # w, smoothed = convolution(w, f)
 
-        ########
+        # Interpolation
         flux = np.interp(base_wavelenght, w, f)
         wavelength = base_wavelenght
         norm_magnitud = statistics.mean(flux[2050:2100])
@@ -244,7 +259,7 @@ def ext_data_processing_and_loading(ext_data_path, block_df, base_wavelenght, oh
     
     return spectrum_matrix, label_ohe_matrix
 
-def external_spectrum_processingv1(prefix: str='ext') -> None:
+def external_spectrum_processingv1(prefix:str='ext') -> None:
     project_dir = Path(__file__).resolve().parents[2]
 
     # Decode Ohe used for already processed numpy train set
@@ -294,7 +309,7 @@ def external_spectrum_processingv1(prefix: str='ext') -> None:
 def main():
     logger = logging.getLogger(__name__)
     logger.info('Starting basic spectrum processing.')
-    #basic_spectrum_pipeline(prefix='lpv1', csv_relative_path=r'data\processed\lpv1_match_labels.csv')
+    basic_spectrum_pipeline(prefix='lpv1', csv_relative_path=r'data\processed\lpv1_match_labels.csv')
     external_spectrum_processingv1()
 
 
