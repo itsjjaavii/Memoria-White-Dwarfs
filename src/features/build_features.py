@@ -10,7 +10,7 @@ import joblib
 import statistics
 from astropy.io import fits
 from astropy.convolution import convolve, Box1DKernel
-
+from typing import Tuple
 
 import sys
 sys.path.append(str(Path(__file__).resolve().parents[2]))
@@ -18,7 +18,7 @@ from src.visualization import visualize as vsz
 
 
 
-def make_stratified_sets(df, train_set_size: float=0.6, validation_test_split: float=0.5) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def make_stratified_sets(df, train_set_size: float=0.6, validation_test_split: float=0.5) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Make stratiffied train, test and validation sets, from a dataframe. 
 

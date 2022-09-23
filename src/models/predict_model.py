@@ -13,14 +13,15 @@ from keras.layers import Conv1D
 from keras.layers import MaxPooling1D
 from keras.layers import Flatten
 import statistics
+import joblib
 
-def preprocessing(file_path :str, sdss_data_path:str):
+def preprocessing(file_path :str, sdss_data_path:str, first_bin=48, last_bin=-400):
 
     full_path = os.path.join(sdss_data_path, file_path)
     print(full_path)
     sed = np.loadtxt(full_path, unpack = True)
-    wavelength = sed[0,48:-400]
-    flux = sed[1,48:-400]
+    wavelength = sed[0,first_bin:last_bin]
+    flux = sed[1,first_bin:last_bin]
     norm_magnitud = statistics.mean(flux[2050:2100])
     if(np.isnan(flux).any() or np.isnan(wavelength).any() or norm_magnitud == 0):
         print("can't process file ".format(file_path))
@@ -35,9 +36,16 @@ class wd_predictor:
         self.dom_path = dom_path
         self.dat_file_path = dat_file_path
     
-    def predict(self, filepath):
-        flux = preprocessing(file_path=filepath, sdss_data_path=self.dat_file_path)
+    def predict_class(self, filepath):
+        flux = preprocessing(file_path=filepath, sdss_data_path=self.dat_file_path, first_bin=298, last_bin=-600)
         model = keras.models.load_model(self.model_path)
+        prediction = model.predict(flux.reshape(1,-1,1))
+        prediction = prediction.reshape((12,))
+        return prediction
+    
+    def predict_dom(self, filepath):
+        flux = preprocessing(file_path=filepath, sdss_data_path=self.dat_file_path)
+        model = joblib.load(self.dom_path)
         prediction = model.predict(flux.reshape(1,-1,1))
         prediction = prediction.reshape((12,))
         return prediction
