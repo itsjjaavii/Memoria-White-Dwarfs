@@ -36,12 +36,18 @@ class wd_predictor:
         self.dom_path = dom_path
         self.dat_file_path = dat_file_path
     
-    def predict_class(self, filepath):
+    def predict_class(self, filepath, get_cam_info=False):
         flux = preprocessing(file_path=filepath, sdss_data_path=self.dat_file_path, first_bin=298, last_bin=-600)
         model = keras.models.load_model(self.model_path)
         prediction = model.predict(flux.reshape(1,-1,1))
         prediction = prediction.reshape((12,))
-        return prediction
+        # Calculate Class Activation Map information if required.
+        if get_cam_info == True:
+            spectrum_output = model.output[:,3]
+            last_conv_layer = model.get_layer('conv1d_3').output
+            return prediction, last_conv_layer, spectrum_output
+        else:
+            return prediction
     
     def predict_dom(self, filepath):
         flux = preprocessing(file_path=filepath, sdss_data_path=self.dat_file_path)

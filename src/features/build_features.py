@@ -79,14 +79,13 @@ def data_processing_and_loading(sdss_data_path, block_df, first_bin=48, last_bin
     for _, row in block_df.iterrows():
         file_path = os.path.join(sdss_data_path, row['filename'])
         sed = np.loadtxt(file_path, unpack = True)
-
-        # only for norm consistency, need to update.
-        flux = sed[1,48:-400]
-        norm_magnitud = statistics.mean(flux[2050:2100])
-
+        
         # Now extract flux and wavelenght portion of interest.
         wavelength = sed[0,first_bin:last_bin]
         flux = sed[1,first_bin:last_bin]
+
+        # only for norm consistency, need to update.
+        norm_magnitud = statistics.mean(flux[2050:2100])
         if(np.isnan(flux).any() or np.isnan(wavelength).any() or norm_magnitud == 0):
             # print('Nan data found for file {}'.format(file_path))
             to_remove.append(row['filename'])
