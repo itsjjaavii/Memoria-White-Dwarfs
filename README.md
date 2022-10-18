@@ -20,15 +20,25 @@ Data Download - Using only dat files from SDSS
 
 You can check in the project organization section below that there is supposed to be a data folder at the top level for the project, but there is no data folder in at this level in the github repo. Currently, We have to create this folder and download the data manually.
 
-Please run the ```make_data_folders.py``` script of the github project to make the necessary folders, or copy the following structure manually at the top level (as shown below in the project organization section).
+Please run the ```make_data_folders.py``` script of the github project to make the necessary folders, or copy the following structure manually at the top level (as shown below in the project organization section). Then, add the following data to each folder:
 
-After that, we need to add the label data and the spectrum data to the "raw" folder. For the spectrum data, you will need to reach SDSS rsync mirror. For Linux/Mac, you can run the command ```rsync -avz --exclude={'*.gif','Exposures/'} rsync://sdss5@dtn.sdss.org/sdsswork/users/u6033609/v6_0_4/ .``` to download the .dat files (this command will exclude gif files and the Exposure/ folder.) given that you have the appropiate credentials. For windows, I recommend using running ubuntu inside inside windows using <a target="_blank" href="https://ubuntu.com/tutorials/install-ubuntu-on-wsl2-on-windows-10#1-overview">Windows Subsystem for Linux</a>
+## SDSS Spectroscopy Data: label data and .dat files
+
+We need to add the label data and the spectrum data to the "raw" folder. For the spectrum data, you will need to reach SDSS rsync mirror. For Linux/Mac, you can run the command ```rsync -avz --exclude={'*.gif','Exposures/'} rsync://sdss5@dtn.sdss.org/sdsswork/users/u6033609/v6_0_4/ .``` to download the .dat files (this command will exclude gif files and the Exposure/ folder.) given that you have the appropiate credentials. For windows, I recommend using running ubuntu inside inside windows using <a target="_blank" href="https://ubuntu.com/tutorials/install-ubuntu-on-wsl2-on-windows-10#1-overview">Windows Subsystem for Linux</a>
 
 Copy the downloaded folders to the "sdss_dat_files" folder. The folder structure should look like this:
 
 ![What is this](READMEimgs/dat_folder_st.png)
 
-For the label data, go to the sdss wiki <a target="_blank" href="https://wiki.sdss.org/display/MWM/v6_0_2+spectroscopic+classification">spectroscopic classification section</a> and download the google drive folder containing the labels. Extract the folder files and copy them inside the "label_data" folder.
+For the label data, go to the sdss wiki <a target="_blank" href="https://wiki.sdss.org/display/MWM/v6_0_2+spectroscopic+classification">spectroscopic classification section</a> and download the google drive folder containing the labels. Extract the folder files (csv files) and copy them inside the "label_data" folder.
+
+## Boris' Data: .fits data from sharepoint
+
+Boris' data aims at reinforcing minority classes for our very unbalanced set. To download it, simply go to the sharepoint and download both the fits spectrums and the crossmatch info. Once downloaded, the folder structure should look like this:
+
+Solarized dark             |  Solarized Ocean           |  Solarized Ocean      
+:-------------------------:|:-------------------------: |:-------------------------:
+![](<img src="READMEimgs\boris_data.png" alt="Data Flow Chart" width="300"/>)  |  ![](<img src="READMEimgs\boris_data_copied.png" alt="Data Flow Chart" width="300"/>)  |  ![](<img src="READMEimgs\boris_cm_info.png" alt="Data Flow Chart" width="300"/>)
 
 Project Organization
 ==============================
