@@ -36,9 +36,17 @@ For the label data, go to the sdss wiki <a target="_blank" href="https://wiki.sd
 
 Boris' data aims at reinforcing minority classes for our very unbalanced set. To download it, simply go to the sharepoint and download both the fits spectrums and the crossmatch info. Once downloaded, the folder structure should look like this:
 
-Solarized dark             |  Solarized Ocean           |  Solarized Ocean      
+Sharepoint             |  fits spectrums           |  crossmatch info     
 :-------------------------:|:-------------------------: |:-------------------------:
-<img src="READMEimgs\boris_data.png" alt="Data Flow Chart" width="300"/>  |  <img src="READMEimgs\boris_data_copied.png" alt="Data Flow Chart" width="300"/>  |  <img src="READMEimgs\boris_cm_info.png" alt="Data Flow Chart" width="300"/>
+<img src="READMEimgs\boris_data.png"  width="300"/>  |  <img src="READMEimgs\boris_data_copied.png"  width="300"/>  |  <img src="READMEimgs\boris_cm_info.png"  width="300"/>
+
+The crossmatch info is relevant so as to not mix spectrums from the training, validation and test sets (in case there's some overlap with the already generated sets).
+
+## SDSS DR7 Data: .fits data from sharepoint
+
+Currently this data is under revision, however in the meantime i've still used it for training, assuming no overlap with current previous sets and good "labels" (in this case, the label is coded on the folder name). To download it, simply go to the sharepoint and download both the fits spectrums and the crossmatch info. Once downloaded, the folder structure should look like this:
+
+![What is this](READMEimgs\sdss_dr7_data.png)
 
 Project Organization
 ==============================
@@ -110,11 +118,19 @@ Inside the "notebooks" folder there are annotated explorations of the data, foll
 
 Most notebooks require files of other notebooks in order to be exceuted, and as they were made for exploration, there has been some clear evolution between them. My recommended execution order for the notebooks is:
 
-1. notebooks\1.0-jrb-data-preprocessing.ipynb : First exploration of sdss data using available .dat files downloaded from sdss, and first exploration of the spectroscopic labeling campaign data. In this notebook we define some simple criteria so as to build our first train, validation and test sets from sdss data.
-2. notebooks\1.0-jrb-first_model_test.ipynb : First model exploration for WD sub-type classification. We explore simple fully connected ANN  and some basic CNN model arquitecture, and show evidence of disparity in the results achieved using an undersampling strategy and an oversampling strategy for balancing the dataset.
-3. notebooks\1.0-jrb-domain-detector.ipynb : First domain detector using random forest and sdss data. The domain detector's task is to recognize whether or not the spectrum data is actually a WD, or in other words, if the spectrum data being analyzed is inside the "domain" of the WD sub-type classifier.
-4. notebooks\1.0-jrb-external-data-exploration.ipynb : The data supplied by boris (available at our group's sharepoint storage, treated as external data in this project) is processed in a similar fashion to the sdss data.  This allows us to concatenate the numpy arrays generated from both datasets in order to do model training over the expanded set, as this external data aims at reinforcing the minority classes.
-5. notebooks\2.0-jrb-external-data-exploration.ipynb : Similar to the last notebook, the sdss_dr7 dataset (available at our group's sharepoint storage, treated as external data in this project) is processed in a similar fashion to the sdss data.  This allows us to concatenate the numpy arrays generated from both datasets in order to do model training over the expanded set. 
+1. **notebooks\1.0-jrb-data-preprocessing.ipynb** : First exploration of sdss data using available .dat files downloaded from sdss, and first exploration of the spectroscopic labeling campaign data. In this notebook we define some simple criteria so as to build our first train, validation and test sets from sdss data.
+2. **notebooks\1.0-jrb-first_model_test.ipynb** : First model exploration for WD sub-type classification. We explore simple fully connected ANN  and some basic CNN model arquitecture, and show evidence of disparity in the results achieved using an undersampling strategy and an oversampling strategy for balancing the dataset.
+3. **notebooks\1.0-jrb-domain-detector.ipynb** : First domain detector using random forest and sdss data. The domain detector's task is to recognize whether or not the spectrum data is actually a WD, or in other words, if the spectrum data being analyzed is inside the "domain" of the WD sub-type classifier.
+4. **notebooks\1.0-jrb-external-data-exploration.ipynb** : The data supplied by boris (available at our group's sharepoint storage, treated as external data in this project) is processed in a similar fashion to the sdss data.  This allows us to concatenate the numpy arrays generated from both datasets in order to do model training over the expanded set, as this external data aims at reinforcing the minority classes.
+5. **notebooks\2.0-jrb-external-data-exploration.ipynb** : Similar to the last notebook, the sdss_dr7 dataset (available at our group's sharepoint storage, treated as external data in this project) is processed in a similar fashion to the sdss data.  This allows us to concatenate the numpy arrays generated from both datasets in order to do model training over the expanded set. 
+6. **notebooks\1.0-jrb-class-activation-map.ipynb** : In this notebook we train a model and then apply Grad-CAM (Gradient Class Map Activation) to the resulting model's predictions. This visualization technique allows to see, trough a heatmap, the locations of the input that had a bigger impact on the activation of the neurons responsibles for the class prediction output.
+
+One the other hand, the following notebooks are more experimental:
+
+7. **notebooks\1.0-jrb-data-augmentation.ipynb** : In this notebook we select more than one spectrum to represent each object, as long as they are different, so as to perform data augmentation. As of this writing, the impact ofthis approach is not clear.
+
+8. **notebooks\1.0-jrb-alternative-approach.ipynb** : In this notebbok an alternative training approach based on every label available is taken, trying to introduce 
+"human bias" intothe algorithm. As of this writing, the performance ofthis approach is not clear.
 
 General Data Flow
 ==============================
@@ -122,3 +138,8 @@ General Data Flow
 The general data flow for classifiying spectra can be seen in the following image:
 
 <img src="READMEimgs/fchart.png" alt="Data Flow Chart" width="300"/>
+
+Report generation tool
+==============================
+
+The report generation tool is currently being developed as a script, namely the **scripts\report_gen.py** file. 
