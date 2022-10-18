@@ -12,17 +12,17 @@ in the csv files.
 Requirements
 ==============================
 
-Development of this modules was made using python 3.9.7. You can use conda (run ```conda create -n python=3.9.7 yourenv pip```) or another python enviroment manager to install python and pip. After that, you can run ```pip install -r requirements.txt``` to install the required packages.
+Development of this modules was made using python 3.9.12. You can use conda (run ```conda create --name <env_name> python=3.9.12 ```) or another python enviroment manager to install python and pip. After that, you can run ```pip install -r requirements.txt``` to install the required packages.
 
 
-Data Download
+Data Download - Using only dat files from SDSS
 ==============================
 
 You can check in the project organization section below that there is supposed to be a data folder at the top level for the project, but there is no data folder in at this level in the github repo. Currently, We have to create this folder and download the data manually.
 
 Please run the ```make_data_folders.py``` script of the github project to make the necessary folders, or copy the following structure manually at the top level (as shown below in the project organization section).
 
-After that, we need to add the label data and the spectrum data to the "raw" folder. For the spectrum data, you will need to reach SDSS rsync mirror. For Linux/Mac, you can run the command ```rsync -avz --exclude={'*.gif','*.dat','Exposures/'} rsync://sdss5@dtn.sdss.org/sdsswork/users/u6033609/v6_0_4/ .``` to download the .dat files (along with other files such as gif images) given that you have the appropiate credentials. For windows, I recommend using running ubuntu inside inside windows using <a target="_blank" href="https://ubuntu.com/tutorials/install-ubuntu-on-wsl2-on-windows-10#1-overview">Windows Subsystem for Linux</a>
+After that, we need to add the label data and the spectrum data to the "raw" folder. For the spectrum data, you will need to reach SDSS rsync mirror. For Linux/Mac, you can run the command ```rsync -avz --exclude={'*.gif','Exposures/'} rsync://sdss5@dtn.sdss.org/sdsswork/users/u6033609/v6_0_4/ .``` to download the .dat files (this command will exclude gif files and the Exposure/ folder.) given that you have the appropiate credentials. For windows, I recommend using running ubuntu inside inside windows using <a target="_blank" href="https://ubuntu.com/tutorials/install-ubuntu-on-wsl2-on-windows-10#1-overview">Windows Subsystem for Linux</a>
 
 Copy the downloaded folders to the "sdss_dat_files" folder. The folder structure should look like this:
 
@@ -96,7 +96,15 @@ Below you can see a description for the intended use of each folder and relevant
 Jupyter Notebooks
 ==============================
 
-Inside the "notebooks" folder there are annotated explorations of the data, all the way to implementing machine learning models. Once the project is going you can execute this notebooks on your computer! By default, no folder inside the notebook sub-folder are stored, as some generated files are too heavy for this free github, as for the data folder.
+Inside the "notebooks" folder there are annotated explorations of the data, following all the way trough to implementing machine learning models for classification. Each otebook result should be stored under a folder of the same name, inside the 'notebooks' directory. 'Once the project is going you can execute this notebooks on your computer! By default, no folder inside the notebook sub-folder is stored, as some generated files are too heavy for this free github. 
+
+Most notebooks require files of other notebooks in order to be exceuted, and as they were made for exploration, there has been some clear evolution between them. My recommended execution order for the notebooks is:
+
+1. notebooks\1.0-jrb-data-preprocessing.ipynb : First exploration of sdss data using available .dat files downloaded from sdss, and first exploration of the spectroscopic labeling campaign data. In this notebook we define some simple criteria so as to build our first train, validation and test sets from sdss data.
+2. notebooks\1.0-jrb-first_model_test.ipynb : First model exploration for WD sub-type classification. We explore simple fully connected ANN  and some basic CNN model arquitecture, and show evidence of disparity in the results achieved using an undersampling strategy and an oversampling strategy for balancing the dataset.
+3. notebooks\1.0-jrb-domain-detector.ipynb : First domain detector using random forest and sdss data. The domain detector's task is to recognize whether or not the spectrum data is actually a WD, or in other words, if the spectrum data being analyzed is inside the "domain" of the WD sub-type classifier.
+4. notebooks\1.0-jrb-external-data-exploration.ipynb : The data supplied by boris (available at our group's sharepoint storage, treated as external data in this project) is processed in a similar fashion to the sdss data.  This allows us to concatenate the numpy arrays generated from both datasets in order to do model training over the expanded set, as this external data aims at reinforcing the minority classes.
+5. notebooks\2.0-jrb-external-data-exploration.ipynb : Similar to the last notebook, the sdss_dr7 dataset (available at our group's sharepoint storage, treated as external data in this project) is processed in a similar fashion to the sdss data.  This allows us to concatenate the numpy arrays generated from both datasets in order to do model training over the expanded set. 
 
 General Data Flow
 ==============================

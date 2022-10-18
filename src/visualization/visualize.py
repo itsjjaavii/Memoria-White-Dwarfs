@@ -29,7 +29,7 @@ def ohe_decoder(class_series, numpy_labels):
     ohe_dict = dict()
 
     while list_of_classes:
-        for index, elem in class_series.iteritems():
+        for index, elem in class_series.items():
             if elem in list_of_classes:
                 ohe_dict[elem] = numpy_labels[index]
                 list_of_classes.remove(elem)
