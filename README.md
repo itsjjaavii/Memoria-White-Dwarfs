@@ -38,7 +38,7 @@ Boris' data aims at reinforcing minority classes for our very unbalanced set. To
 
 Solarized dark             |  Solarized Ocean           |  Solarized Ocean      
 :-------------------------:|:-------------------------: |:-------------------------:
-![](<img src="READMEimgs\boris_data.png" alt="Data Flow Chart" width="300"/>)  |  ![](<img src="READMEimgs\boris_data_copied.png" alt="Data Flow Chart" width="300"/>)  |  ![](<img src="READMEimgs\boris_cm_info.png" alt="Data Flow Chart" width="300"/>)
+<img src="READMEimgs\boris_data.png" alt="Data Flow Chart" width="300"/>  |  <img src="READMEimgs\boris_data_copied.png" alt="Data Flow Chart" width="300"/>  |  <img src="READMEimgs\boris_cm_info.png" alt="Data Flow Chart" width="300"/>
 
 Project Organization
 ==============================
