@@ -48,7 +48,7 @@ def make_stratified_sets(df, train_set_size: float=0.6, validation_test_split: f
 
 # We want to load a matrix from the training data, given the data size this wil be acceptable.
 
-def data_processing_and_loading(sdss_data_path, block_df, first_bin=48, last_bin=-400):
+def data_processing_and_loading(sdss_data_path, block_df, first_bin=48, last_bin=-400, normalize='mean'):
     """
     The following function takes a dataframe consisting of two columns: filename of .dat
     file and class ID, and returns a numpy array consisting of the spectrum data matrix, 
@@ -80,16 +80,20 @@ def data_processing_and_loading(sdss_data_path, block_df, first_bin=48, last_bin
         sed = np.loadtxt(file_path, unpack = True)
         
         # Now extract flux and wavelenght portion of interest.
-        wavelength = sed[0,first_bin:last_bin]
+        w = sed[0,first_bin:last_bin]
         flux = sed[1,first_bin:last_bin]
 
-        # only for norm consistency, need to update.
-        norm_magnitud = statistics.mean(flux[2050:2100])
-        if(np.isnan(flux).any() or np.isnan(wavelength).any() or norm_magnitud == 0):
-            # print('Nan data found for file {}'.format(file_path))
-            to_remove.append(row['filename'])
+        # we will not use data with nan elements or zero mean.
+        flux_mean = statistics.mean(flux)
+        if(np.isnan(flux).any() or np.isnan(w).any() or flux_mean == 0):
+            to_remove.append(row['THING_ID'])
         else:
-            flux = np.divide(flux, norm_magnitud)
+            # Normalize if required by user
+            if normalize == 'mean':
+                flux = np.divide(flux, flux_mean)
+            elif normalize == 'norm_v1':
+                flux = np.divide(flux, statistics.mean(flux[2050:2100])) # normalize around a fixed wavelenght vecinity.
+            # append data to numpy matrices
             spectrum_matrix = np.append(spectrum_matrix, np.transpose(flux[:, None]), axis=0)
     for element in to_remove:
         block_df.drop(block_df.index[block_df['filename'] == element], inplace = True)
@@ -180,12 +184,29 @@ def zero_pad_str(final_len, my_str):
     """
     return (final_len - len(my_str)) * '0' + my_str if final_len > len(my_str) else my_str
 
-def extraction(fitfile):
-    hdu  = fits.open(fitfile)
+def extraction(fits_file):
+    """
+    Extract fits files and correct for vacuum wavelenght if needed (to math currently used .dat files wavelenght)
+
+    Parameters
+    ----------
+    :fits_file: path to fits file
+
+    Returns
+    -------
+    :return: return w and f, wavelenght and flux numpy arrays.
+    """ 
+    hdu  = fits.open(fits_file)
     data = hdu['COADD'].data
     w = 10**data['loglam']
     f = data['flux']*1e-17
+
+    # Check if wavelenghts are considered in vacuum, addjust if necessary.
+    h_data = hdu[0].header
+    if (h_data['VACUUM']):
+        w = w / (1.0 + 2.735182E-4 + 131.4182 / w ** 2 + 2.76249E8 / w ** 4)
     return w,f
+
 
 def make_external_datasets():
     # Loading crossmatch dataframe and make stratiffied training, test and validation sets.
@@ -207,7 +228,7 @@ def make_external_datasets():
 
     return ext_train_set, ext_test_set, ext_valid_set
 
-def ext_data_processing_and_loading(ext_data_path, block_df, base_wavelenght, ohe_dict, ext_data_dict, first_bin=48, last_bin=-400, full_filename=False):
+def ext_data_processing_and_loading(ext_data_path, block_df, base_wavelenght, ohe_dict, ext_data_dict, first_bin=48, last_bin=-400, full_filename=False, normalize = 'mean'):
     """
     The following function takes a dataframe consisting of two columns: filename of .dat
     file and class ID, and returns numpy arrays consisting of the spectrum data matrix.
@@ -241,15 +262,21 @@ def ext_data_processing_and_loading(ext_data_path, block_df, base_wavelenght, oh
         w,f = extraction(fits_path)
         # w, smoothed = convolution(w, f)
 
+        
         # Interpolation
         flux = np.interp(base_wavelenght, w, f)
-        wavelength = base_wavelenght
-        norm_magnitud = statistics.mean(flux[2050:2100])
-        if(np.isnan(flux).any() or np.isnan(wavelength).any() or norm_magnitud == 0):
-            # print('Nan data found for file {}'.format(file_path))
+
+        # we will not use data with nan elements or zero mean.
+        flux_mean = statistics.mean(flux)
+        if(np.isnan(flux).any() or np.isnan(w).any() or flux_mean == 0):
             to_remove.append(row['THING_ID'])
         else:
-            flux = np.divide(flux, statistics.mean(flux[2050:2100]))
+            # Normalize if required by user
+            if normalize == 'mean':
+                flux = np.divide(flux, flux_mean)
+            elif normalize == 'norm_v1':
+                flux = np.divide(flux, statistics.mean(flux[2050:2100])) # normalize around a fixed wavelenght vecinity.
+            # append data to numpy matrices
             spectrum_matrix = np.append(spectrum_matrix, np.transpose(flux[:, None]), axis=0)
             label_ohe_matrix = np.append(label_ohe_matrix, ohe_dict[ext_data_dict[row['classID']]].reshape(1, 12), axis=0)
     for element in to_remove:
