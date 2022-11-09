@@ -179,7 +179,7 @@ line_dicts = {
     },
 }
 
-def png_report_generator(flux, base_wavelenght, model, heatmap, dom_pred, star_classes, filepath, png_save_path):
+def png_report_generator(not_norm_flux, flux, base_wavelenght, model, heatmap, dom_pred, star_classes, filepath, png_save_path):
 
     fig = plt.figure(figsize=(20,13)) 
 
@@ -203,9 +203,9 @@ def png_report_generator(flux, base_wavelenght, model, heatmap, dom_pred, star_c
             spax.axvline(x=line_pos, ymin=0, ymax=1, color=line_design[element]['color'],  linestyle=line_design[element]['style'])
 
     spax.set_title('Flux plot (normalized)')
-    spax.plot(base_wavelenght, flux, color='black', linewidth=0.5)
+    spax.plot(base_wavelenght, not_norm_flux, color='black', linewidth=0.5)
     spax.get_tightbbox(renderer=fig.canvas.get_renderer())
-    spax.set_ylabel('$F_\lambda$ (Normalized)', fontsize=12)
+    spax.set_ylabel('$F_\lambda$', fontsize=12)
 
     
 

@@ -10,6 +10,8 @@ import statistics
 import matplotlib.pyplot as plt
 import joblib
 import logging
+import configparser
+import argparse
 
 # # Automatic spectral classification report generator.
 #
@@ -32,11 +34,6 @@ sys.path.append(project_dir)
 from src.visualization import visualize as vsz
 from src.models import predict_model as pdm
 from src.features import build_features as bfs
-
-# Load desired model for prediction and class map activation
-
-model = keras.models.load_model(os.path.join(project_dir, r'models/model_4C_3FC.h5'))
-dom_rf_model = joblib.load(os.path.join(project_dir, r'models/rf_best_model.joblib'))
 
 # Load ohe dictionary used for training, currently done manually. 
 
@@ -98,7 +95,7 @@ sdss_data_path = os.path.join(project_dir, r'data\raw\sdss_dat_files')
 
 #### directory iteration  routine: finds all files named .dat and .fits inside a given directory. ###
 
-def dir_input_iteration_routine(save_path, data_path, classes_of_interest='all', filter_by_domain_detector=False):
+def dir_input_iteration_routine(save_path, data_path, model, dom_rf_model, classes_of_interest='all', filter_by_domain_detector=False):
     counter=0
     logger = logging.getLogger(__name__)
 
@@ -141,6 +138,7 @@ def dir_input_iteration_routine(save_path, data_path, classes_of_interest='all',
                     continue
 
                 flux = np.interp(base_wavelenght, w, f)
+                not_norm_flux = flux
                 # normalization
                 norm_magnitud = statistics.mean(flux[2050:2100])
 
@@ -165,7 +163,7 @@ def dir_input_iteration_routine(save_path, data_path, classes_of_interest='all',
                     predicted_class = prediction.argmax(1)
                     cam_wda = pdm.GradCAM(model, int(predicted_class))
                     heatmap = cam_wda.compute_heatmap(flux.reshape(1,-1,1))
-                    vsz.png_report_generator(flux, base_wavelenght, model, heatmap, dom_pred, star_classes, filepath=os.path.join(root, file), png_save_path=os.path.join(save_path, current_folder, file[:-4].replace('.','_')))
+                    vsz.png_report_generator(not_norm_flux, flux, base_wavelenght, model, heatmap, dom_pred, star_classes, filepath=os.path.join(root, file), png_save_path=os.path.join(save_path, current_folder, file[:-4].replace('.','_')))
                     logger.info('Found and interesting one! file {}, type {}'.format(os.path.join(current_folder, file), predicted_class_str))
                     counter+=1
 
@@ -180,18 +178,18 @@ def dir_input_iteration_routine(save_path, data_path, classes_of_interest='all',
 
     #### directory iteration  routine: finds all files named .dat and .fits inside a given directory. ###
 
-def csv_input_iteration_routine(save_path, data_path, classes_of_interest='all', filter_by_domain_detector=False, relative_path=None, normalize='mean'):
+def csv_input_iteration_routine(save_path, data_path, model, dom_rf_model, classes_of_interest='all', filter_by_domain_detector=False, relative_path=None, normalize='mean'):
     counter=0
     logger = logging.getLogger(__name__)
 
     results_df = pd.DataFrame(columns=['filename', 'preds']) # for storing prediciton results into csv file.
 
-    df = pd.read.csv(os.path.join(relative_path, data_path) if relative_path != None else data_path)
+    df = pd.read_csv(data_path)
     filenames = df.loc[:,'filename']
         
     for file in filenames:
         if file.endswith(('.dat', '.fits')):
-            w, f = load_spectrum_data(file)
+            w, f = load_spectrum_data(os.path.join(relative_path, file) if relative_path != None else file)
 
             # Interpolation
 
@@ -206,7 +204,7 @@ def csv_input_iteration_routine(save_path, data_path, classes_of_interest='all',
                 continue
 
             flux = np.interp(base_wavelenght, w, f)
-
+            not_norm_flux = flux
             # normalization       
               
             flux_mean = statistics.mean(flux)
@@ -231,8 +229,12 @@ def csv_input_iteration_routine(save_path, data_path, classes_of_interest='all',
                 predicted_class = prediction.argmax(1)
                 cam_wda = pdm.GradCAM(model, int(predicted_class))
                 heatmap = cam_wda.compute_heatmap(flux.reshape(1,-1,1))
-                vsz.png_report_generator(flux, base_wavelenght, model, heatmap, dom_pred, star_classes, filepath=file, png_save_path=os.path.join(save_path, file[:-4].replace('.','_')))
-                logger.info('Found and interesting one! file {}, type {}'.format(file), predicted_class_str)
+
+                # make folder if necessary
+                os.makedirs(os.path.join(save_path, os.path.dirname(file)), exist_ok=True)
+
+                vsz.png_report_generator(not_norm_flux, flux, base_wavelenght, model, heatmap, dom_pred, star_classes, filepath=file, png_save_path=os.path.join(save_path, file[:-4].replace('.','_')))
+                logger.info('Found and interesting one! file {}, type {}'.format(file, predicted_class_str))
                 counter+=1
 
             results_df = pd.concat([results_df, pd.DataFrame.from_records([{'filename' : file, 'preds' : predicted_class_str}])], ignore_index=True)
@@ -243,17 +245,40 @@ def csv_input_iteration_routine(save_path, data_path, classes_of_interest='all',
 def main():
     logger = logging.getLogger(__name__)
     logger.info('Starting basic spectrum processing.')
-    
-    # Define a saving path for the analysis results. This includes both the csv summary, the png report files and the written summary.
 
-    save_path = os.path.join(project_dir, r'D:\SDSS_Results')
-    # sdss_data_path = os.path.join(project_dir, r'data\raw\sdss_dat_files') D:\small_dataset
-    data_path = r'D:\small_dataset'
+    # script arg is path to config file
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-cf", "--config_file", type=str)
+    args = parser.parse_args()
+    cf_path = args.config_file
+    
+    # Load configuration file attributes.
+    configParser = configparser.RawConfigParser()   
+    configFilePath = os.path.join(project_dir, cf_path)
+    configParser.read(configFilePath)
+
+    class_model_path = configParser.get('models', 'class_model')
+    dom_rf_model_path = configParser.get('models', 'dom_model')
+    data_path = configParser.get('paths', 'data_path')
+    save_path = configParser.get('paths', 'save_path')
+
+    try:
+        relative_path = configParser.get('paths', 'relative_path')
+    except:
+        pass
+
+    # Load desired model for prediction and class map activation
+
+    model = keras.models.load_model(os.path.join(project_dir, class_model_path))
+    dom_rf_model = joblib.load(os.path.join(project_dir, dom_rf_model_path))
+
+    # Call data iteration functions.
     
     if os.path.isdir(data_path):
-        dir_input_iteration_routine(save_path, data_path)
+        dir_input_iteration_routine(save_path, data_path, model, dom_rf_model)
     elif data_path.endswith('.csv'):
-        csv_input_iteration_routine(save_path, data_path)
+        csv_input_iteration_routine(save_path, data_path, model, dom_rf_model, relative_path=relative_path)
     else:
         print("Can't understant input format, it's not a csv nor a directory.")
 
