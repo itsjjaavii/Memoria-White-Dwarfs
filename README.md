@@ -24,7 +24,7 @@ Please run the ```make_data_folders.py``` script of the github project to make t
 
 ## SDSS Spectroscopy Data: label data and .dat files
 
-We need to add the label data and the spectrum data to the "raw" folder. For the spectrum data, you will need to reach SDSS rsync mirror. For Linux/Mac, you can run the command ```rsync -avz --exclude={'*.gif','Exposures/'} rsync://sdss5@dtn.sdss.org/sdsswork/users/u6033609/v6_0_4/ .``` to download the .dat files (this command will exclude gif files and the Exposure/ folder.) given that you have the appropiate credentials. For windows, I recommend using running ubuntu inside inside windows using <a target="_blank" href="https://ubuntu.com/tutorials/install-ubuntu-on-wsl2-on-windows-10#1-overview">Windows Subsystem for Linux</a>
+We need to add the label data and the spectrum data to the "raw" folder. For the spectrum data, you will need to reach SDSS rsync mirror. For Linux/Mac, you can run the command ```rsync -avz --exclude={'*.gif','Exposures/'} rsync://sdss5@dtn.sdss.org/sdsswork/users/u6033609/v6_0_4/ .``` to download the .dat files from the folder that was created for this study (this command will exclude gif files and the Exposure/ folder. You can omit or rewrite the optional exclude argument as you see fit. For example, you can download the lite version of all sdss coadded spectra using ```rsync -avz rsync://sdss5@dtn.sdss.org/sdsswork/bhm/boss/spectro/redux/v6_0_4/spectra/lite/ .```), given that you have the appropiate credentials. For windows, I recommend using running ubuntu inside inside windows using <a target="_blank" href="https://ubuntu.com/tutorials/install-ubuntu-on-wsl2-on-windows-10#1-overview">Windows Subsystem for Linux</a>
 
 Copy the downloaded folders to the "sdss_dat_files" folder. The folder structure should look like this:
 
@@ -142,4 +142,18 @@ The general data flow for classifiying spectra can be seen in the following imag
 Report generation tool
 ==============================
 
-The report generation tool is currently being developed as a script, namely the **scripts\report_gen.py** file. 
+The report generation tool is currently being developed as a script, namely the **scripts\report_gen.py** file. In order to use it, You will need a configuration files pointing to some key elements: 
+
+------------
+
+[models]
+class_model = models/model_4C_3FC.h5
+dom_model = models/rf_best_model.joblib
+
+[paths]
+data_path = C:\Users\jotab\Documents\Github\sdss_repo\batch036.csv
+save_path = D:/SDSS_Results
+relative_path = C:/Users/jotab/Documents/Github/sdss_repo/data/raw/sdss_dat_files
+
+
+--------

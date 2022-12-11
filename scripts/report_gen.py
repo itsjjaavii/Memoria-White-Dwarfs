@@ -196,11 +196,13 @@ def csv_input_iteration_routine(save_path, data_path, model, dom_rf_model, class
             if (np.isnan(f).any()):
                 nans, x= nan_helper(f)
                 f[nans] = np.interp(x(nans), x(~nans), f[~nans])
+                logger.info('file {} has Nan inputs on flux, interpolated and proceeded anyway.'.format(file))
             if (np.isnan(w).any()):
                 nans, x= nan_helper(w)
                 w[nans] = np.interp(x(nans), x(~nans), w[~nans])
+                logger.info('file {} has Nan inputs on wavelenght, interpolated and proceeded anyway.'.format(file))
             if(np.isnan(w).all() or np.isnan(f).all()):
-                logger.info('Foun all nan file {}'.format(file))
+                logger.info('Foun all nan file {}. Not analyzing.'.format(file))
                 continue
 
             flux = np.interp(base_wavelenght, w, f)
@@ -208,6 +210,9 @@ def csv_input_iteration_routine(save_path, data_path, model, dom_rf_model, class
             # normalization       
               
             flux_mean = statistics.mean(flux)
+            if(np.isclose(flux_mean, 0, rtol=0, atol=1e-30, equal_nan=False)):
+                logger.info('Found file with zero flux {}. Not analyzing.'.format(file))
+                continue
             
             if normalize == 'mean':
                 flux = np.divide(flux, flux_mean)
@@ -280,11 +285,14 @@ def main():
     elif data_path.endswith('.csv'):
         csv_input_iteration_routine(save_path, data_path, model, dom_rf_model, relative_path=relative_path)
     else:
-        print("Can't understant input format, it's not a csv nor a directory.")
+        logger.info("Can't understant input format, it's not a csv nor a directory.")
 
 # Name guarding for executing file a a script.
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(level=logging.INFO, format=log_fmt)
+    logging.basicConfig(level=logging.INFO, format=log_fmt, filename="scan_log_file.log", filemode='a', force=True)
+    logger = logging.getLogger(__name__)
+    logging.getLogger().addHandler(logging.StreamHandler())
+    logging.info('Calling main() function.')
     main()
