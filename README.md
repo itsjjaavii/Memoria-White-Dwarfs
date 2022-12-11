@@ -161,6 +161,9 @@ save_path = D:/SDSS_Results
 "models" and "paths" are section names in the **default_config.ini.** example. **class_model** is a relative path pointing to the WD sub-class model. **dom_model** is a relative path pointing to the domain detector model. It's important both of those are in the models folder.  
 
 The **relative_path** parameter is optional. When analyzing a .csv file, this relative path will be appended to each filename in the .csv file. 
-**data_path** is a full path pointing to either a .csv file, or to a directory. If the target is a .csv file, then the csv file is expected to at have at least one column: A ```filename```. The filename contains either relative paths (using the optional parameter **relative_path** as the base path) of full file paths to each file to analyze. This files must be either .dat or .fits files. In addition, the ```classID``` column will be used to log both predictions and class originally identified by the astronomer, using the logging module from python. 
+
+**data_path** is a full path pointing to either a .csv file, or to a directory. If the target is a .csv file, then the csv file is expected to at have at least one column named ```filename```. The filename contains either relative paths (using the optional parameter **relative_path** as the base path) of full file paths to each file to analyze. This files must be either .dat or .fits files. In addition, the optional ```classID``` column will be used to log both predictions and class originally identified by the astronomer, using the logging module from python. 
+
 If **data_path** poitns to a directory, the script will recursively scan every folder and subfolder inside the directory, looking for either .dat or .fits files, and analyze them.
+
 The **save_path** parameter will point to the folder where the dataframe of results will be stored, as well as the generated .png files showing the machine's analysis for each file.
