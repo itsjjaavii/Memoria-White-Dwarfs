@@ -142,18 +142,25 @@ The general data flow for classifiying spectra can be seen in the following imag
 Report generation tool
 ==============================
 
-The report generation tool is currently being developed as a script, namely the **scripts\report_gen.py** file. In order to use it, You will need a configuration files pointing to some key elements: 
+The report generation tool is currently being developed as a script, namely the **scripts\report_gen.py** file. In order to use it, You will need a configuration .ini file pointing to some key elements: 
 
 ------------
 
 [models] \
 class_model = models/model_4C_3FC.h5 \
-dom_model = models/rf_best_model.joblib \
+dom_model = models/rf_best_model.joblib
 
-[paths]
-data_path = C:\Users\jotab\Documents\Github\sdss_repo\batch036.csv \
-save_path = D:/SDSS_Results \
-relative_path = C:/Users/jotab/Documents/Github/sdss_repo/data/raw/sdss_dat_files
+[paths] \
+relative_path = C:/Users/jotab/Documents/Github/sdss_repo/data/raw/sdss_dat_files \
+data_path = C:/Users/jotab/Documents/Github/sdss_repo/scripts/only_wd.csv \
+save_path = D:/SDSS_Results 
 
 
 --------
+
+"models" and "paths" are section names in the **default_config.ini.** example. **class_model** is a relative path pointing to the WD sub-class model. **dom_model** is a relative path pointing to the domain detector model. It's important both of those are in the models folder.  
+
+The **relative_path** parameter is optional. When analyzing a .csv file, this relative path will be appended to each filename in the .csv file. 
+**data_path** is a full path pointing to either a .csv file, or to a directory. If the target is a .csv file, then the csv file is expected to at have at least one column: A ```filename```. The filename contains either relative paths (using the optional parameter **relative_path** as the base path) of full file paths to each file to analyze. This files must be either .dat or .fits files. In addition, the ```classID``` column will be used to log both predictions and class originally identified by the astronomer, using the logging module from python. 
+If **data_path** poitns to a directory, the script will recursively scan every folder and subfolder inside the directory, looking for either .dat or .fits files, and analyze them.
+The **save_path** parameter will point to the folder where the dataframe of results will be stored, as well as the generated .png files showing the machine's analysis for each file.

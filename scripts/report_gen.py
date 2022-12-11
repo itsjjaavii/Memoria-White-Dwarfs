@@ -182,12 +182,21 @@ def csv_input_iteration_routine(save_path, data_path, model, dom_rf_model, class
     counter=0
     logger = logging.getLogger(__name__)
 
-    results_df = pd.DataFrame(columns=['filename', 'preds']) # for storing prediciton results into csv file.
-
+    # Read dataframe containing filenames
     df = pd.read_csv(data_path)
     filenames = df.loc[:,'filename']
+
+    # Check if dataframe has a column containing a "classID" label
+    if "classID" in df.columns:
+        classID = df.loc[:,'classID']
+
+    # Create dataframe for storing results
+    if "classID" in df.columns:
+        results_df = pd.DataFrame(columns=['filename', 'preds', 'classID']) # for storing prediciton results into csv file
+    else:
+        results_df = pd.DataFrame(columns=['filename', 'preds']) # for storing prediciton results into csv file.
         
-    for file in filenames:
+    for class_index, file in enumerate(filenames):
         if file.endswith(('.dat', '.fits')):
             w, f = load_spectrum_data(os.path.join(relative_path, file) if relative_path != None else file)
 
@@ -239,10 +248,16 @@ def csv_input_iteration_routine(save_path, data_path, model, dom_rf_model, class
                 os.makedirs(os.path.join(save_path, os.path.dirname(file)), exist_ok=True)
 
                 vsz.png_report_generator(not_norm_flux, flux, base_wavelenght, model, heatmap, dom_pred, star_classes, filepath=file, png_save_path=os.path.join(save_path, file[:-4].replace('.','_')))
-                logger.info('Found and interesting one! file {}, type {}'.format(file, predicted_class_str))
+                if "classID" in df.columns:
+                    logger.info('Found and interesting one! file: {}, type: {}, original prediciton: {}'.format(file, predicted_class_str, classID[class_index]))
+                else:
+                    logger.info('Found and interesting one! file: {}, type: {}'.format(file, predicted_class_str))
                 counter+=1
 
-            results_df = pd.concat([results_df, pd.DataFrame.from_records([{'filename' : file, 'preds' : predicted_class_str}])], ignore_index=True)
+            if "classID" in df.columns:
+                results_df = pd.concat([results_df, pd.DataFrame.from_records([{'filename' : file, 'preds' : predicted_class_str, 'classID' : classID[class_index]}])], ignore_index=True)
+            else:
+                results_df = pd.concat([results_df, pd.DataFrame.from_records([{'filename' : file, 'preds' : predicted_class_str}])], ignore_index=True)
     results_df.to_csv(os.path.join(save_path, 'results.csv') , index=False)
     print('analyzed {} elements'.format(counter))
 
