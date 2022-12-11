@@ -146,13 +146,13 @@ The report generation tool is currently being developed as a script, namely the 
 
 ------------
 
-[models]
-class_model = models/model_4C_3FC.h5
-dom_model = models/rf_best_model.joblib
+[models] \
+class_model = models/model_4C_3FC.h5 \
+dom_model = models/rf_best_model.joblib \
 
 [paths]
-data_path = C:\Users\jotab\Documents\Github\sdss_repo\batch036.csv
-save_path = D:/SDSS_Results
+data_path = C:\Users\jotab\Documents\Github\sdss_repo\batch036.csv \
+save_path = D:/SDSS_Results \
 relative_path = C:/Users/jotab/Documents/Github/sdss_repo/data/raw/sdss_dat_files
 
 
