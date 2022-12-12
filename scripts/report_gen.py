@@ -258,6 +258,7 @@ def csv_input_iteration_routine(save_path, data_path, model, dom_rf_model, class
                 results_df = pd.concat([results_df, pd.DataFrame.from_records([{'filename' : file, 'wd_prediction' : predicted_class_str, 'dom_prediciton' : bool(dom_pred),'classID' : classID[class_index]}])], ignore_index=True)
             else:
                 results_df = pd.concat([results_df, pd.DataFrame.from_records([{'filename' : file, 'wd_prediction' : predicted_class_str, 'dom_prediciton' : bool(dom_pred)}])], ignore_index=True)
+            results_df["dom_prediciton"]=results_df["dom_prediciton"].astype(bool)
     results_df.to_csv(os.path.join(save_path, 'results.csv') , index=False)
     print('analyzed {} elements'.format(counter))
 
