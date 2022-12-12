@@ -211,7 +211,7 @@ def csv_input_iteration_routine(save_path, data_path, model, dom_rf_model, class
                 w[nans] = np.interp(x(nans), x(~nans), w[~nans])
                 logger.info('file {} has Nan inputs on wavelenght, interpolated and proceeded anyway.'.format(file))
             if(np.isnan(w).all() or np.isnan(f).all()):
-                logger.info('Foun all nan file {}. Not analyzing.'.format(file))
+                logger.info('Found all nan file {}. Not analyzing.'.format(file))
                 continue
 
             flux = np.interp(base_wavelenght, w, f)
@@ -255,9 +255,9 @@ def csv_input_iteration_routine(save_path, data_path, model, dom_rf_model, class
                 counter+=1
 
             if "classID" in df.columns:
-                results_df = pd.concat([results_df, pd.DataFrame.from_records([{'filename' : file, 'preds' : predicted_class_str, 'classID' : classID[class_index]}])], ignore_index=True)
+                results_df = pd.concat([results_df, pd.DataFrame.from_records([{'filename' : file, 'wd_prediction' : predicted_class_str, 'dom_prediciton' : bool(dom_pred),'classID' : classID[class_index]}])], ignore_index=True)
             else:
-                results_df = pd.concat([results_df, pd.DataFrame.from_records([{'filename' : file, 'preds' : predicted_class_str}])], ignore_index=True)
+                results_df = pd.concat([results_df, pd.DataFrame.from_records([{'filename' : file, 'wd_prediction' : predicted_class_str, 'dom_prediciton' : bool(dom_pred)}])], ignore_index=True)
     results_df.to_csv(os.path.join(save_path, 'results.csv') , index=False)
     print('analyzed {} elements'.format(counter))
 

@@ -86,7 +86,7 @@ def data_processing_and_loading(sdss_data_path, block_df, first_bin=48, last_bin
         # we will not use data with nan elements or zero mean.
         flux_mean = statistics.mean(flux)
         if(np.isnan(flux).any() or np.isnan(w).any() or flux_mean == 0):
-            to_remove.append(row['THING_ID'])
+            to_remove.append(row['filename'])
         else:
             # Normalize if required by user
             if normalize == 'mean':
