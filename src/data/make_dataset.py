@@ -138,7 +138,13 @@ def match_dat_files(label_df: pd.DataFrame, sdss_datfiles_path: str) -> pd.DataF
     for _, row in label_df.iterrows():
         filekey = str(row['MJD']) + '_' + str(row['Target ID']) + '.dat'
         if filekey in file_dict:
-            spectrum_df = spectrum_df.append({'filename' : file_dict[filekey], 'classID' : row['Classification']}, ignore_index=True)
+            spectrum_df = pd.concat(
+    [spectrum_df, pd.DataFrame([{
+        'filename': file_dict[filekey],
+        'classID': row['Classification']
+    }])],
+    ignore_index=True
+)
     return spectrum_df
 
 def simple_processing_pipeline(prefix: str='lpv1', data_augmentation: Boolean=False) -> None:
